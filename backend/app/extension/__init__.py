@@ -5,5 +5,5 @@ extension = Blueprint('extension', __name__)
 
 
 
-from .routes import blueprint
+from . import routes
 

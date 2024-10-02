@@ -8,3 +8,5 @@ def create_app():
     # Register the blueprint
     from .extension import extension
     app.register_blueprint(extension)
+
+    return app
