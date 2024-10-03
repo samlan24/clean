@@ -47,50 +47,8 @@ const App = () => {
       body: JSON.stringify({ url }),
     });
     // Update the whitelist UI
-    const updatedWhitelist = whitelist.filter((item) => item !== url);
-    setWhitelist(updatedWhitelist);
+    setWhitelist(whitelist.filter((item) => item !== url));
   };
-
-  // Automatically close inactive tabs after 1 minute
-  const checkForInactiveTabs = () => {
-    const now = new Date().getTime();
-
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach((tab) => {
-        const lastActive = tabActivity[tab.id];
-
-        if (lastActive && now - lastActive > 1 * 60 * 1000) {
-          if (!whitelist.includes(tab.url)) {
-            chrome.tabs.remove(tab.id);
-          }
-        }
-      });
-    });
-  };
-
-  useEffect(() => {
-    // Track tab activity: Update last active time when a tab is updated
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      setTabActivity((prev) => ({
-        ...prev,
-        [tabId]: new Date().getTime(),
-      }));
-    });
-
-    // Track tab activity: Update last active time when a tab is activated
-    chrome.tabs.onActivated.addListener((activeInfo) => {
-      setTabActivity((prev) => ({
-        ...prev,
-        [activeInfo.tabId]: new Date().getTime(),
-      }));
-    });
-
-    // Check for inactive tabs every minute
-    const interval = setInterval(checkForInactiveTabs, 60000);
-
-    // Cleanup the interval on component unmount
-    return () => clearInterval(interval);
-  }, [whitelist, tabActivity]);
 
   return (
     <div>
@@ -108,7 +66,7 @@ const App = () => {
       <ul>
         {whitelist.map((url, index) => (
           <li key={index}>
-            {url} - <button onClick={() => removeFromWhitelist(url)}>Remove from Whitelist</button>
+            {url} - <button onClick={() => removeFromWhitelist(url)}>Remove from Whiteist</button>
           </li>
         ))}
       </ul>
