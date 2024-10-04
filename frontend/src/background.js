@@ -1,4 +1,5 @@
 let whitelist = [];
+let activeTabId = null;
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension Installed');
@@ -15,6 +16,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   // Update the last active time for the active tab
+  activeTabId = activeInfo.tabId;
   chrome.storage.local.set({ [activeInfo.tabId]: new Date().getTime() }, () => {
     console.log(`Tab ${activeInfo.tabId} activated at ${new Date().getTime()}`);
   });
@@ -24,15 +26,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'getWhitelist') {
     sendResponse({ whitelist });
   } else if (message.action === 'addToWhitelist') {
-    if (!whitelist.includes(message.url)) {
-      whitelist.push(message.url);
+    const normalizedUrl = normalizeUrl(message.url);
+    if (!whitelist.includes(normalizedUrl)) {
+      whitelist.push(normalizedUrl);
     }
     sendResponse({ whitelist });
   } else if (message.action === 'removeFromWhitelist') {
-    whitelist = whitelist.filter(url => url !== message.url);
+    whitelist = whitelist.filter(url => url !== normalizeUrl(message.url));
     sendResponse({ whitelist });
   }
 });
+
+// Normalize URL function
+const normalizeUrl = (url) => {
+  try {
+    const { protocol, hostname, pathname } = new URL(url);
+    return `${protocol}//${hostname}${pathname}`;
+  } catch (e) {
+    return url; // Return original if URL is invalid
+  }
+};
 
 // Function to check for inactive tabs and close them if they are not in the whitelist
 const checkForInactiveTabs = () => {
@@ -41,13 +54,14 @@ const checkForInactiveTabs = () => {
     tabs.forEach((tab) => {
       chrome.storage.local.get([tab.id.toString()], (result) => {
         const lastActive = result[tab.id.toString()];
-        if (lastActive) {
-          console.log(`Tab ${tab.id} last active at ${lastActive}`);
-        }
-        if (lastActive && now - lastActive > 30 * 1000) { // 30 seconds
-          if (!whitelist.includes(tab.url)) {
+        if (lastActive && now - lastActive > 30 * 1000) { // Check for inactivity over 30 seconds
+          const normalizedUrl = normalizeUrl(tab.url);
+          // Close the tab only if it's not in the whitelist and not the active tab
+          if (!whitelist.includes(normalizedUrl) && tab.id !== activeTabId) {
             console.log(`Closing tab ${tab.id} with URL ${tab.url}`);
             chrome.tabs.remove(tab.id);
+          } else {
+            console.log(`Tab ${tab.id} with URL ${tab.url} is in the whitelist or is the active tab`);
           }
         }
       });
@@ -55,5 +69,5 @@ const checkForInactiveTabs = () => {
   });
 };
 
-// Check for inactive tabs every 10 seconds
-setInterval(checkForInactiveTabs, 10000);
+// Check for inactive tabs every 30 seconds
+setInterval(checkForInactiveTabs, 30000);
