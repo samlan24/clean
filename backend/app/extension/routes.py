@@ -1,8 +1,10 @@
 from . import extension
 from flask import Flask, request, jsonify
 
+
 # Store whitelist in memory for simplicity (could be replaced with a database)
 whitelist = []
+closed_tabs = []
 
 # Add a tab to the whitelist
 @extension.route('/add-to-whitelist', methods=['POST'])
@@ -27,5 +29,14 @@ def remove_from_whitelist():
 def get_whitelist():
     return jsonify({"whitelist": whitelist}), 200
 
+# Store closed tab
+@extension.route('/store-closed-tab', methods=['POST'])
+def store_closed_tab():
+    tab_info = request.json
+    closed_tabs.append(tab_info)
+    return jsonify({"message": "Tab stored"}), 200
 
-
+# Get closed tabs
+@extension.route('/closed-tabs', methods=['GET'])
+def get_closed_tabs():
+    return jsonify({"closed_tabs": closed_tabs}), 200
