@@ -61,6 +61,23 @@ const removeFromWhitelist = async (url) => {
   }
 };
 
+// Store closed tab information
+const storeClosedTab = async (tab) => {
+  try {
+    const response = await fetch('http://localhost:5000/store-closed-tab', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tab),
+    });
+    const data = await response.json();
+    console.log(data.message);
+  } catch (error) {
+    console.error('Error storing closed tab:', error);
+  }
+};
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension Installed');
 });
@@ -107,6 +124,7 @@ const checkForInactiveTabs = async () => {
           // Close the tab only if it's not in the whitelist and not the active tab
           if (!whitelist.includes(normalizedUrl) && tab.id !== activeTabId) {
             console.log(`Closing tab ${tab.id} with URL ${tab.url}`);
+            storeClosedTab({ id: tab.id, url: tab.url, title: tab.title });
             chrome.tabs.remove(tab.id);
           } else {
             console.log(`Tab ${tab.id} with URL ${tab.url} is in the whitelist or is the active tab`);

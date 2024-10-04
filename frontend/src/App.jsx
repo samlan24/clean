@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ActiveTabs from './components/ActiveTabs';
 import WhitelistedTabs from './components/WhitelistedTabs';
+import ClosedTabs from './components/ClosedTabs';
 
 const App = () => {
   const [tabs, setTabs] = useState([]);
@@ -52,11 +53,17 @@ const App = () => {
     setWhitelist(whitelist.filter((item) => item !== url));
   };
 
+  // Reopen a closed tab
+  const reopenTab = (tab) => {
+    chrome.tabs.create({ url: tab.url });
+  };
+
   return (
     <div>
       <h1>Clean Tab Manager</h1>
       <ActiveTabs tabs={tabs} addToWhitelist={addToWhitelist} />
       <WhitelistedTabs whitelist={whitelist} removeFromWhitelist={removeFromWhitelist} />
+      <ClosedTabs reopenTab={reopenTab} />
     </div>
   );
 };
