@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ActiveTabs from './components/ActiveTabs';
+import WhitelistedTabs from './components/WhitelistedTabs';
 
 const App = () => {
   const [tabs, setTabs] = useState([]);
@@ -52,24 +54,9 @@ const App = () => {
 
   return (
     <div>
-      <h1>Tab Manager</h1>
-      <h2>Active Tabs</h2>
-      <ul>
-        {tabs.map((tab, index) => (
-          <li key={index}>
-            {tab.title} - <button onClick={() => addToWhitelist(tab.url)}>Whitelist</button>
-          </li>
-        ))}
-      </ul>
-
-      <h2>Whitelisted Tabs</h2>
-      <ul>
-        {whitelist.map((url, index) => (
-          <li key={index}>
-            {url} - <button onClick={() => removeFromWhitelist(url)}>Remove from Whiteist</button>
-          </li>
-        ))}
-      </ul>
+      <h1>Clean Tab Manager</h1>
+      <ActiveTabs tabs={tabs} addToWhitelist={addToWhitelist} />
+      <WhitelistedTabs whitelist={whitelist} removeFromWhitelist={removeFromWhitelist} />
     </div>
   );
 };
